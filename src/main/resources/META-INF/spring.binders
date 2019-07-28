@@ -1,0 +1,2 @@
+activemq:\
+com.github.wdx.spirngstreamactivemqbinder.activemq.config.ActiveMqBinderConfiguration
