@@ -1,8 +1,6 @@
 package com.github.wdx.spirngstreamactivemqbinder.activemq.properties;
 
-import org.springframework.cloud.stream.binder.BinderSpecificPropertiesProvider;
-
-public class ActiveMQBindingProperties implements BinderSpecificPropertiesProvider {
+public class ActiveMQBindingProperties {
 
 	private ActiveMQConsumerProperties consumer = new ActiveMQConsumerProperties();
 	
