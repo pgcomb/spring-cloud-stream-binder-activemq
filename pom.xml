@@ -9,7 +9,7 @@
     </parent>
     <groupId>com.github.pgcomb</groupId>
     <artifactId>spring-cloud-stream-binder-activemq</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
     <name>spring-cloud-stream-binder-activemq</name>
     <description>Demo project for Spring Boot</description>
     <licenses>

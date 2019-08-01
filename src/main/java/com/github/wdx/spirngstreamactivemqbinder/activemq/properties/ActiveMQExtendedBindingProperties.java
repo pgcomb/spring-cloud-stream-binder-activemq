@@ -9,7 +9,7 @@ import java.util.Map;
 @ConfigurationProperties(value = "spring.cloud.stream")
 public class ActiveMQExtendedBindingProperties implements ExtendedBindingProperties<ActiveMQConsumerProperties, ActiveMQProducerProperties> {
 
-	private Map<String, ActiveMQBindingProperties> bindings;
+	private Map<String, ActiveMQBindingProperties> bindings = new HashMap<>();
 
 	public Map<String, ActiveMQBindingProperties> getBindings() {
 		return this.bindings;
