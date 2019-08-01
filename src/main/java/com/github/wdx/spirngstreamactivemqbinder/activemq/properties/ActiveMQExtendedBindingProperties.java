@@ -6,11 +6,10 @@ import org.springframework.cloud.stream.binder.ExtendedBindingProperties;
 import java.util.HashMap;
 import java.util.Map;
 
-@ConfigurationProperties("spring.cloud.stream.activemq")
+@ConfigurationProperties(value = "spring.cloud.stream")
 public class ActiveMQExtendedBindingProperties implements ExtendedBindingProperties<ActiveMQConsumerProperties, ActiveMQProducerProperties> {
-	private static final String DEFAULTS_PREFIX = "spring.cloud.stream.activemq.default";
 
-	private Map<String, ActiveMQBindingProperties> bindings = new HashMap<>();
+	private Map<String, ActiveMQBindingProperties> bindings;
 
 	public Map<String, ActiveMQBindingProperties> getBindings() {
 		return this.bindings;

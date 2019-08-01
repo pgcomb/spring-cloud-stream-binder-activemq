@@ -1,9 +1,16 @@
 package com.github.wdx.spirngstreamactivemqbinder.activemq.properties;
 
-public class ActiveMQConsumerProperties{
+import org.springframework.cloud.stream.config.MergableProperties;
+
+public class ActiveMQConsumerProperties implements MergableProperties {
 
 	private String destination;
-	
+
+	/**
+	 * topic or queue
+	 */
+	private String type;
+
 	private String partition;
 	
 	private boolean transaction;
@@ -31,5 +38,22 @@ public class ActiveMQConsumerProperties{
 	public void setPartition(String partition) {
 		this.partition = partition;
 	}
-	
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	@Override
+	public String toString() {
+		return "ActiveMQConsumerProperties{" +
+				"destination='" + destination + '\'' +
+				", type='" + type + '\'' +
+				", partition='" + partition + '\'' +
+				", transaction=" + transaction +
+				'}';
+	}
 }

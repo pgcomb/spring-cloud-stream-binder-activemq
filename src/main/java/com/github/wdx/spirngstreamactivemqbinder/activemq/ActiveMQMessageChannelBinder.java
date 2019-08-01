@@ -1,43 +1,41 @@
 package com.github.wdx.spirngstreamactivemqbinder.activemq;
 
 
-import com.github.wdx.spirngstreamactivemqbinder.activemq.properties.ActiveMQBinderConfigurationProperties;
-import com.github.wdx.spirngstreamactivemqbinder.activemq.properties.ActiveMQConsumerProperties;
-import com.github.wdx.spirngstreamactivemqbinder.activemq.properties.ActiveMQExtendedBindingProperties;
-import com.github.wdx.spirngstreamactivemqbinder.activemq.properties.ActiveMQProducerProperties;
-import com.github.wdx.spirngstreamactivemqbinder.activemq.provisioning.ActiveMQQueueProvisioner;
+import com.github.wdx.spirngstreamactivemqbinder.activemq.properties.*;
+import com.github.wdx.spirngstreamactivemqbinder.activemq.provisioning.ActiveMQProvisioningProvider;
 import com.github.wdx.spirngstreamactivemqbinder.activemq.support.ActiveMQMessageProducer;
+import org.apache.activemq.command.ActiveMQQueue;
 import org.apache.activemq.command.ActiveMQTopic;
 import org.apache.activemq.spring.ActiveMQConnectionFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.cloud.stream.binder.*;
 import org.springframework.cloud.stream.provisioning.ConsumerDestination;
 import org.springframework.cloud.stream.provisioning.ProducerDestination;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.jms.JmsSendingMessageHandler;
 import org.springframework.jms.core.JmsTemplate;
-import org.springframework.jms.support.destination.DestinationResolver;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 
 import javax.jms.DeliveryMode;
-import javax.jms.Destination;
-import javax.jms.JMSException;
-import javax.jms.Session;
 
 public class ActiveMQMessageChannelBinder 
 	extends AbstractMessageChannelBinder<ExtendedConsumerProperties<ActiveMQConsumerProperties>,
-			ExtendedProducerProperties<ActiveMQProducerProperties>, ActiveMQQueueProvisioner>
+			ExtendedProducerProperties<ActiveMQProducerProperties>, ActiveMQProvisioningProvider>
 	implements ExtendedPropertiesBinder<MessageChannel, ActiveMQConsumerProperties, ActiveMQProducerProperties> {
 	
 	private ActiveMQExtendedBindingProperties extendedProperties;
 
 	private ActiveMQBinderConfigurationProperties activeMQBinderConfigurationProperties;
 
-	public ActiveMQMessageChannelBinder(String[] headersToEmbed, ActiveMQQueueProvisioner provisioningProvider,
-										ActiveMQBinderConfigurationProperties activeMQBinderConfigurationProperties) {
+	private ActiveMQDefaultExtendedBindingProperties activeMQDefaultExtendedBindingProperties;
+
+	public ActiveMQMessageChannelBinder(String[] headersToEmbed, ActiveMQProvisioningProvider provisioningProvider,
+										ActiveMQBinderConfigurationProperties activeMQBinderConfigurationProperties,
+										ActiveMQDefaultExtendedBindingProperties activeMQDefaultExtendedBindingProperties) {
 		super(headersToEmbed, provisioningProvider);
 		this.activeMQBinderConfigurationProperties = activeMQBinderConfigurationProperties;
+		this.activeMQDefaultExtendedBindingProperties = activeMQDefaultExtendedBindingProperties;
 	}
 
 
@@ -57,7 +55,14 @@ public class ActiveMQMessageChannelBinder
         	jmsTemplate.setSessionTransacted(false);
 		}
         JmsSendingMessageHandler jmsSendingMessageHandler = new JmsSendingMessageHandler(jmsTemplate);
-        jmsSendingMessageHandler.setDestination(new ActiveMQTopic(destination.getName()));
+
+		if ("topic".equals(producerProperties.getExtension().getType())){
+			jmsTemplate.setDefaultDestination(new ActiveMQTopic(destination.getName()));
+			jmsSendingMessageHandler.setDestination(new ActiveMQTopic(destination.getName()));
+		}else {
+			jmsTemplate.setDefaultDestination(new ActiveMQQueue(destination.getName()));
+			jmsSendingMessageHandler.setDestination(new ActiveMQQueue(destination.getName()));
+		}
         jmsSendingMessageHandler.setBeanFactory(getApplicationContext());
         return jmsSendingMessageHandler;
 	}
@@ -71,21 +76,40 @@ public class ActiveMQMessageChannelBinder
 			producer.setTransaction(true);
 		}
 		JmsTemplate jmsTemplate = new JmsTemplate(getConnectionFactory());
-		jmsTemplate.setDefaultDestination(new ActiveMQTopic(destination.getName()));
+		if ("topic".equals(properties.getExtension().getType())){
+			jmsTemplate.setDefaultDestination(new ActiveMQTopic(destination.getName()));
+		}else {
+			jmsTemplate.setDefaultDestination(new ActiveMQQueue(destination.getName()));
+		}
+
 		jmsTemplate.setDeliveryMode(DeliveryMode.PERSISTENT);
 		producer.setJmsTemplate(jmsTemplate);
-		producer.setDestination(new ActiveMQTopic(destination.getName()));
+		if ("topic".equals(properties.getExtension().getType())){
+			producer.setDestination(new ActiveMQTopic(destination.getName()));
+		}else {
+			producer.setDestination(new ActiveMQQueue(destination.getName()));
+		}
 		return producer;
 	}
 
 	@Override
 	public ActiveMQConsumerProperties getExtendedConsumerProperties(String channelName) {
-		return this.extendedProperties.getExtendedConsumerProperties(channelName);
+		ActiveMQConsumerProperties consumer = new ActiveMQConsumerProperties();
+		BeanUtils.copyProperties(this.extendedProperties.getExtendedConsumerProperties(channelName),consumer);
+		ActiveMQConsumerProperties consumerDef = activeMQDefaultExtendedBindingProperties.getConsumer();
+		BeanUtils.copyProperties(activeMQDefaultExtendedBindingProperties.getConsumer(),consumerDef);
+		consumerDef.merge(consumer);
+		return consumer;
 	}
 
 	@Override
 	public ActiveMQProducerProperties getExtendedProducerProperties(String channelName) {
-		return this.extendedProperties.getExtendedProducerProperties(channelName);
+		ActiveMQProducerProperties producerProperties = new ActiveMQProducerProperties();
+		BeanUtils.copyProperties(this.extendedProperties.getExtendedProducerProperties(channelName),producerProperties);
+		ActiveMQProducerProperties producerPropertiesDef = activeMQDefaultExtendedBindingProperties.getProducer();
+		BeanUtils.copyProperties(activeMQDefaultExtendedBindingProperties.getProducer(),producerPropertiesDef);
+		producerPropertiesDef.merge(producerProperties);
+		return producerProperties;
 	}
 
 	private ActiveMQConnectionFactory getConnectionFactory(){

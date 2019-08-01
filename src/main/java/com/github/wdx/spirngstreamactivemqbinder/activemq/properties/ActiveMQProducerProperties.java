@@ -1,9 +1,13 @@
 package com.github.wdx.spirngstreamactivemqbinder.activemq.properties;
 
-public class ActiveMQProducerProperties{
+import org.springframework.cloud.stream.config.MergableProperties;
+
+public class ActiveMQProducerProperties implements MergableProperties {
 
 	private String destination;
-	
+
+	private String type;
+
 	private String partition;
 	
 	private boolean transaction = false;
@@ -31,5 +35,12 @@ public class ActiveMQProducerProperties{
 	public void setDestination(String destination) {
 		this.destination = destination;
 	}
-	
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
 }

@@ -10,7 +10,7 @@ import org.springframework.cloud.stream.provisioning.ProvisioningException;
 import org.springframework.cloud.stream.provisioning.ProvisioningProvider;
 import org.springframework.util.StringUtils;
 
-public class ActiveMQQueueProvisioner implements 
+public class ActiveMQProvisioningProvider implements
 		ProvisioningProvider<ExtendedConsumerProperties<ActiveMQConsumerProperties>,
 						ExtendedProducerProperties<ActiveMQProducerProperties>> {
 	
